@@ -1,0 +1,1004 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cuestionario de Pandas y DataFrames en Python</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@fortawesome/fontawesome-free@6.4.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap" rel="stylesheet">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            background-color: #f7f9fc;
+        }
+        .question-container {
+            transition: all 0.3s ease;
+        }
+        .code-block {
+            background-color: #f8f8f8;
+            border-radius: 5px;
+            font-family: monospace;
+            tab-size: 4;
+            padding: 15px;
+            border: 1px solid #e2e8f0;
+            white-space: pre-wrap;
+        }
+        .timer {
+            font-size: 1.5rem;
+            font-weight: bold;
+        }
+        .option-label {
+            transition: background-color 0.2s ease;
+        }
+        .option-label:hover {
+            background-color: #edf2f7;
+        }
+        input[type="radio"]:checked + .option-label {
+            background-color: #ebf5ff;
+            border-color: #4299e1;
+        }
+        .progress-bar {
+            transition: width 0.3s ease;
+        }
+        .chart-container {
+            width: 100%;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        @media print {
+            .no-print {
+                display: none;
+            }
+            body {
+                background-color: white;
+            }
+            .page-container {
+                margin: 0;
+                padding: 0;
+                box-shadow: none;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container mx-auto px-4 py-8">
+        <div id="intro-screen" class="bg-white rounded-lg shadow-lg p-8 mb-8">
+            <h1 class="text-3xl font-bold text-center text-blue-600 mb-6">Cuestionario de Pandas y DataFrames en Python</h1>
+            <div class="text-center mb-6">
+                <div class="flex justify-center items-center mb-4">
+                    <i class="fab fa-python text-5xl text-blue-500 mr-4"></i>
+                    <i class="fas fa-table text-5xl text-green-500"></i>
+                </div>
+                <p class="text-lg mb-4">Este cuestionario evalúa tus conocimientos sobre la biblioteca Pandas y el manejo de DataFrames en Python.</p>
+                <p class="text-gray-700 mb-2">• 40 preguntas sobre filtros y manipulación matemática de DataFrames</p>
+                <p class="text-gray-700 mb-2">• Valor total: 50 puntos</p>
+                <p class="text-gray-700 mb-4">• Tiempo recomendado: 60 minutos</p>
+            </div>
+            <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
+                <p class="text-blue-700">Instrucciones:</p>
+                <ul class="list-disc ml-5 text-gray-700">
+                    <li>Lea cada pregunta cuidadosamente antes de responder</li>
+                    <li>Todas las preguntas tienen una única respuesta correcta</li>
+                    <li>Puede cambiar sus respuestas hasta enviar el cuestionario</li>
+                    <li>Al finalizar, obtendrá su puntuación y las respuestas correctas</li>
+                </ul>
+            </div>
+            <div class="text-center">
+                <button id="start-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow transition duration-300 transform hover:scale-105">
+                    Comenzar Cuestionario <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <div id="quiz-container" class="bg-white rounded-lg shadow-lg p-8 mb-8 hidden">
+            <div class="flex justify-between items-center mb-6">
+                <h2 class="text-2xl font-bold text-blue-600">Cuestionario de Pandas y DataFrames</h2>
+                <div class="timer no-print"><i class="far fa-clock mr-2"></i><span id="time">60:00</span></div>
+            </div>
+            
+            <div class="mb-6 bg-gray-100 rounded-full h-4 no-print">
+                <div id="progress-bar" class="bg-blue-500 h-4 rounded-full progress-bar" style="width: 0%"></div>
+            </div>
+            
+            <div id="questions-container" class="mb-8">
+                <!-- Las preguntas se generarán dinámicamente aquí -->
+            </div>
+            
+            <div class="flex justify-between mt-8 no-print">
+                <button id="prev-button" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-lg disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-arrow-left mr-2"></i> Anterior
+                </button>
+                <div class="text-center">
+                    <span id="question-indicator" class="text-gray-600 font-medium">Pregunta 1 de 40</span>
+                </div>
+                <button id="next-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg">
+                    Siguiente <i class="fas fa-arrow-right ml-2"></i>
+                </button>
+            </div>
+            
+            <div class="text-center mt-8 no-print">
+                <button id="submit-button" class="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-8 rounded-lg shadow hidden">
+                    Finalizar y Enviar <i class="fas fa-check ml-2"></i>
+                </button>
+            </div>
+        </div>
+        
+        <div id="results-container" class="bg-white rounded-lg shadow-lg p-8 hidden">
+            <h2 class="text-2xl font-bold text-center text-blue-600 mb-6">Resultados del Cuestionario</h2>
+            
+            <div class="text-center mb-8">
+                <div class="relative inline-block">
+                    <svg class="w-48 h-48">
+                        <circle cx="96" cy="96" r="70" fill="none" stroke="#edf2f7" stroke-width="24"></circle>
+                        <circle id="score-circle" cx="96" cy="96" r="70" fill="none" stroke="#4299e1" stroke-width="24" stroke-dasharray="439.8" stroke-dashoffset="439.8" transform="rotate(-90 96 96)"></circle>
+                    </svg>
+                    <div class="absolute top-0 left-0 w-full h-full flex flex-col items-center justify-center">
+                        <span id="final-score" class="text-4xl font-bold text-blue-600">0</span>
+                        <span class="text-gray-500">de 50 puntos</span>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="flex justify-center mb-8">
+                <div class="chart-container">
+                    <canvas id="results-chart"></canvas>
+                </div>
+            </div>
+            
+            <div id="feedback" class="text-center text-lg font-medium mb-8"></div>
+            
+            <div class="border-t pt-6">
+                <h3 class="text-xl font-bold mb-4">Análisis de Respuestas</h3>
+                <div id="answers-container" class="space-y-6">
+                    <!-- El análisis de respuestas se generará dinámicamente aquí -->
+                </div>
+            </div>
+            
+            <div class="text-center mt-8 no-print">
+                <button id="retry-button" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-3 px-8 rounded-lg shadow">
+                    Intentar nuevamente <i class="fas fa-redo ml-2"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Definir las preguntas del cuestionario
+        const questions = [
+            {
+                id: 1,
+                text: "¿Cuál es la forma correcta de importar la biblioteca pandas?",
+                options: [
+                    "import pandas",
+                    "import pandas as pd",
+                    "from pandas import *",
+                    "require pandas"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 2,
+                text: "¿Cuál es el comando para crear un DataFrame a partir de un diccionario?",
+                options: [
+                    "pd.DataFrame.from_dict(data)",
+                    "pd.DataFrame(data)",
+                    "pd.create_dataframe(data)",
+                    "pd.dict_to_df(data)"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 3,
+                text: "¿Cómo se selecciona una columna específica 'nombre' de un DataFrame df?",
+                options: [
+                    "df.column('nombre')",
+                    "df['nombre']",
+                    "df.get('nombre')",
+                    "df('nombre')"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 4,
+                text: "Para seleccionar múltiples columnas de un DataFrame df, ¿qué sintaxis es correcta?",
+                options: [
+                    "df[['nombre', 'edad']]",
+                    "df('nombre', 'edad')",
+                    "df.get(['nombre', 'edad'])",
+                    "df.columns('nombre', 'edad')"
+                ],
+                correctAnswer: 0,
+                points: 1
+            },
+            {
+                id: 5,
+                text: "¿Qué método se utiliza para obtener estadísticas descriptivas básicas de un DataFrame?",
+                options: [
+                    "df.stats()",
+                    "df.describe()",
+                    "df.info()",
+                    "df.summary()"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 6,
+                text: "¿Qué método se utiliza para eliminar valores faltantes (NaN) en un DataFrame?",
+                options: [
+                    "df.delete_na()",
+                    "df.remove_nulls()",
+                    "df.dropna()",
+                    "df.clean()"
+                ],
+                correctAnswer: 2,
+                points: 1
+            },
+            {
+                id: 7,
+                text: "¿Cómo se filtran las filas de un DataFrame donde la columna 'edad' es mayor que 30?",
+                code: "# Dado el siguiente DataFrame\ndf = pd.DataFrame({\n    'nombre': ['Ana', 'Juan', 'María', 'Carlos'],\n    'edad': [25, 35, 42, 28]\n})\n\n# ¿Cómo seleccionar solo las filas donde edad > 30?",
+                options: [
+                    "df[df.edad > 30]",
+                    "df.filter(edad > 30)",
+                    "df.query('edad > 30')",
+                    "df.where('edad > 30')"
+                ],
+                correctAnswer: 0,
+                points: 1.5
+            },
+            {
+                id: 8,
+                text: "¿Qué método se utiliza para rellenar valores faltantes con un valor específico?",
+                options: [
+                    "df.fillna(value)",
+                    "df.fill(value)",
+                    "df.replace_na(value)",
+                    "df.input(value)"
+                ],
+                correctAnswer: 0,
+                points: 1
+            },
+            {
+                id: 9,
+                text: "¿Cómo se obtiene el número de filas y columnas de un DataFrame?",
+                options: [
+                    "df.size()",
+                    "df.shape",
+                    "df.dimensions",
+                    "df.count()"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 10,
+                text: "¿Qué método se utiliza para ordenar un DataFrame por los valores de una columna 'ventas' en orden descendente?",
+                code: "# Dado el siguiente DataFrame\ndf = pd.DataFrame({\n    'producto': ['A', 'B', 'C', 'D'],\n    'ventas': [150, 200, 100, 300]\n})\n\n# ¿Cómo ordenarlo por ventas en orden descendente?",
+                options: [
+                    "df.order_by('ventas', ascending=False)",
+                    "df.sort('ventas', descending=True)",
+                    "df.sort_values('ventas', ascending=False)",
+                    "df.sort_by(column='ventas', ascending=False)"
+                ],
+                correctAnswer: 2,
+                points: 1.5
+            },
+            {
+                id: 11,
+                text: "¿Cómo se agrupan los datos de un DataFrame por una columna 'categoría' y se calcula la suma de otra columna 'ventas'?",
+                code: "# Dado el siguiente DataFrame\ndf = pd.DataFrame({\n    'categoría': ['A', 'B', 'A', 'B', 'C'],\n    'ventas': [100, 200, 150, 300, 250]\n})\n\n# ¿Cómo agrupar por categoría y sumar las ventas?",
+                options: [
+                    "df.group_by('categoría').sum('ventas')",
+                    "df.groupby('categoría')['ventas'].sum()",
+                    "df.aggregate('categoría', sum='ventas')",
+                    "df.pivot('categoría', 'ventas', 'sum')"
+                ],
+                correctAnswer: 1,
+                points: 1.5
+            },
+            {
+                id: 12,
+                text: "¿Qué método se utiliza para cambiar el nombre de las columnas de un DataFrame?",
+                code: "# Dado el siguiente DataFrame\ndf = pd.DataFrame({\n    'a': [1, 2, 3],\n    'b': [4, 5, 6]\n})\n\n# ¿Cómo renombrar las columnas a 'x' y 'y'?",
+                options: [
+                    "df.rename({'a': 'x', 'b': 'y'})",
+                    "df.rename(columns={'a': 'x', 'b': 'y'})",
+                    "df.columns = ['x', 'y']",
+                    "df.set_names({'a': 'x', 'b': 'y'})"
+                ],
+                correctAnswer: 1,
+                points: 1.5
+            },
+            {
+                id: 13,
+                text: "¿Qué método se utiliza para unir dos DataFrames df1 y df2 por una columna común 'id'?",
+                options: [
+                    "pd.join(df1, df2, on='id')",
+                    "pd.merge(df1, df2, on='id')",
+                    "df1.combine(df2, key='id')",
+                    "df1.union(df2, by='id')"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 14,
+                text: "¿Qué hace el método apply() en un DataFrame?",
+                options: [
+                    "Aplica una función a cada columna del DataFrame",
+                    "Aplica una función a cada fila del DataFrame",
+                    "Aplica una función a cada elemento del DataFrame",
+                    "Aplica una función a columnas o filas según el eje especificado"
+                ],
+                correctAnswer: 3,
+                points: 1
+            },
+            {
+                id: 15,
+                text: "¿Cómo se calcula la media de cada columna numérica en un DataFrame df?",
+                options: [
+                    "df.average()",
+                    "df.mean()",
+                    "df.median()",
+                    "df.calculate('mean')"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 16,
+                text: "¿Qué operación realiza el siguiente código?\ndf['total'] = df['precio'] * df['cantidad']",
+                options: [
+                    "Crea una nueva columna 'total' que es el producto de 'precio' y 'cantidad'",
+                    "Multiplica todos los valores de la columna 'precio' por 'cantidad'",
+                    "Reemplaza la columna 'total' existente con el producto",
+                    "Genera un error porque no se pueden multiplicar columnas"
+                ],
+                correctAnswer: 0,
+                points: 1.5
+            },
+            {
+                id: 17,
+                text: "¿Cómo se agrega una nueva fila a un DataFrame existente?",
+                code: "# Dado el siguiente DataFrame\ndf = pd.DataFrame({\n    'nombre': ['Ana', 'Juan'],\n    'edad': [25, 30]\n})\n\n# ¿Cómo agregar una nueva fila con 'María', 28?",
+                options: [
+                    "df.append({'nombre': 'María', 'edad': 28}, ignore_index=True)",
+                    "df.add_row({'nombre': 'María', 'edad': 28})",
+                    "pd.concat([df, pd.DataFrame({'nombre': ['María'], 'edad': [28]})])",
+                    "df.insert({'nombre': 'María', 'edad': 28})"
+                ],
+                correctAnswer: 0,
+                points: 1.5
+            },
+            {
+                id: 18,
+                text: "¿Qué función se utiliza para leer un archivo CSV y convertirlo en un DataFrame?",
+                options: [
+                    "pd.read_file('datos.csv')",
+                    "pd.import_csv('datos.csv')",
+                    "pd.read_csv('datos.csv')",
+                    "pd.load_data('datos.csv')"
+                ],
+                correctAnswer: 2,
+                points: 1
+            },
+            {
+                id: 19,
+                text: "¿Qué método se utiliza para identificar valores duplicados en un DataFrame?",
+                options: [
+                    "df.find_duplicates()",
+                    "df.duplicated()",
+                    "df.is_duplicate()",
+                    "df.get_duplicates()"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 20,
+                text: "¿Qué operación realiza la función pivot_table?",
+                options: [
+                    "Solo reordena las columnas del DataFrame",
+                    "Crea una tabla dinámica resumiendo datos según funciones de agregación",
+                    "Transpone filas y columnas del DataFrame",
+                    "Filtra el DataFrame según valores pivote"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 21,
+                text: "¿Cuál es el resultado del siguiente código?\ndf.loc[df['edad'] > 30, 'categoría'] = 'Adulto'",
+                code: "# Dado el siguiente DataFrame\ndf = pd.DataFrame({\n    'nombre': ['Ana', 'Juan', 'Carlos', 'María'],\n    'edad': [25, 35, 40, 28],\n    'categoría': ['Joven', 'Joven', 'Joven', 'Joven']\n})",
+                options: [
+                    "Crea una nueva columna 'categoría' solo para las filas donde edad > 30",
+                    "Establece el valor 'Adulto' en la columna 'categoría' para las filas donde edad > 30",
+                    "Filtra el DataFrame para mostrar solo filas donde edad > 30 y categoría = 'Adulto'",
+                    "Genera un error porque loc no puede modificar valores"
+                ],
+                correctAnswer: 1,
+                points: 1.5
+            },
+            {
+                id: 22,
+                text: "¿Qué hace el método resample() en pandas?",
+                options: [
+                    "Toma una muestra aleatoria de filas del DataFrame",
+                    "Cambia la frecuencia de los datos de series temporales",
+                    "Normaliza los valores numéricos a una escala específica",
+                    "Regenera el índice del DataFrame"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 23,
+                text: "¿Cómo se seleccionan las primeras 5 filas de un DataFrame df?",
+                options: [
+                    "df.first(5)",
+                    "df.head(5)",
+                    "df.top(5)",
+                    "df[:5]"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 24,
+                text: "¿Qué operación realiza df.iloc[2:5, 1:3]?",
+                options: [
+                    "Selecciona filas 2 a 4 y columnas 1 a 2",
+                    "Selecciona filas 2 a 5 y columnas 1 a 3",
+                    "Selecciona filas 2 a 4 y columnas con índices 1 y 2",
+                    "Selecciona filas con índices 2 y 5, columnas con índices 1 y 3"
+                ],
+                correctAnswer: 0,
+                points: 1.5
+            },
+            {
+                id: 25,
+                text: "¿Cuál es la diferencia principal entre loc y iloc?",
+                options: [
+                    "loc selecciona por nombre de columna, iloc por posición numérica",
+                    "loc selecciona por índice de etiqueta, iloc por posición numérica",
+                    "loc solo puede seleccionar filas, iloc puede seleccionar filas y columnas",
+                    "loc permite filtrar datos, iloc solo permite seleccionar subconjuntos"
+                ],
+                correctAnswer: 1,
+                points: 1.5
+            },
+            {
+                id: 26,
+                text: "¿Qué hace el método melt() en pandas?",
+                options: [
+                    "Combina múltiples columnas en una sola",
+                    "Convierte un DataFrame ancho a formato largo",
+                    "Fusiona dos DataFrames en uno solo",
+                    "Elimina columnas redundantes"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 27,
+                text: "¿Cómo se calcula la mediana de cada grupo en un DataFrame agrupado?",
+                code: "# Dado el siguiente DataFrame\ndf = pd.DataFrame({\n    'grupo': ['A', 'A', 'B', 'B', 'B'],\n    'valor': [10, 20, 30, 40, 50]\n})\n\n# ¿Cómo calcular la mediana de 'valor' para cada grupo?",
+                options: [
+                    "df.groupby('grupo').mean()",
+                    "df.groupby('grupo').median()",
+                    "df.groupby('grupo')['valor'].median()",
+                    "df.groupby('grupo').aggregate('median')"
+                ],
+                correctAnswer: 2,
+                points: 1.5
+            },
+            {
+                id: 28,
+                text: "¿Qué operación realiza el siguiente código?\ndf['porcentaje'] = (df['valor'] / df['total']) * 100",
+                options: [
+                    "Calcula el porcentaje de cada valor respecto al total correspondiente",
+                    "Calcula el porcentaje de cada valor respecto a la suma de todos los valores",
+                    "Genera un error porque no se pueden realizar operaciones matemáticas entre columnas",
+                    "Actualiza la columna 'porcentaje' existente con nuevos valores"
+                ],
+                correctAnswer: 0,
+                points: 1.5
+            },
+            {
+                id: 29,
+                text: "¿Cómo se puede convertir una columna de strings a valores numéricos en pandas?",
+                code: "# Dado el siguiente DataFrame\ndf = pd.DataFrame({\n    'valor': ['1', '2', '3', '4']\n})",
+                options: [
+                    "df['valor'] = df['valor'].to_numeric()",
+                    "df['valor'] = pd.to_numeric(df['valor'])",
+                    "df['valor'] = int(df['valor'])",
+                    "df['valor'] = df['valor'].astype(int)"
+                ],
+                correctAnswer: 1,
+                points: 1.5
+            },
+            {
+                id: 30,
+                text: "¿Qué método se utiliza para detectar valores atípicos (outliers) en un DataFrame?",
+                options: [
+                    "df.describe() y analizar mínimo/máximo",
+                    "df.outliers()",
+                    "df.boxplot() para visualización",
+                    "df.is_outlier()"
+                ],
+                correctAnswer: 0,
+                points: 1
+            },
+            {
+                id: 31,
+                text: "¿Qué operación realiza el siguiente código?\ndf.groupby('categoria')['ventas'].transform('sum')",
+                options: [
+                    "Devuelve la suma total de ventas para cada categoría en formato resumido",
+                    "Crea una nueva columna con la suma de ventas por categoría, manteniendo la forma original del DataFrame",
+                    "Transforma la columna 'ventas' en una suma acumulativa por categoría",
+                    "Calcula la diferencia entre cada venta y la suma total de su categoría"
+                ],
+                correctAnswer: 1,
+                points: 1.5
+            },
+            {
+                id: 32,
+                text: "¿Cuál es la forma correcta de calcular la desviación estándar para cada grupo en un DataFrame agrupado?",
+                code: "# Dado el siguiente DataFrame\ndf = pd.DataFrame({\n    'grupo': ['A', 'A', 'B', 'B', 'B'],\n    'valor': [10, 20, 30, 40, 50]\n})",
+                options: [
+                    "df.groupby('grupo').std()",
+                    "df.groupby('grupo')['valor'].std()",
+                    "df.groupby('grupo').stdev()",
+                    "df.std(group='grupo')"
+                ],
+                correctAnswer: 1,
+                points: 1.5
+            },
+            {
+                id: 33,
+                text: "¿Qué hace el método rolling() en pandas?",
+                options: [
+                    "Calcula estadísticas móviles a lo largo de una ventana específica",
+                    "Reorganiza aleatoriamente las filas del DataFrame",
+                    "Rota las columnas del DataFrame",
+                    "Calcula valores acumulativos"
+                ],
+                correctAnswer: 0,
+                points: 1
+            },
+            {
+                id: 34,
+                text: "¿Qué técnica se utiliza para realizar codificación one-hot de variables categóricas?",
+                options: [
+                    "pd.factorize()",
+                    "pd.get_dummies()",
+                    "pd.encode()",
+                    "pd.categorical()"
+                ],
+                correctAnswer: 1,
+                points: 1
+            },
+            {
+                id: 35,
+                text: "¿Cómo se calcula la correlación entre las columnas numéricas de un DataFrame?",
+                options: [
+                    "df.corr()",
+                    "df.correlation()",
+                    "pd.correlation(df)",
+                    "df.covariance()"
+                ],
+                correctAnswer: 0,
+                points: 1
+            },
+            {
+                id: 36,
+                text: "¿Qué método se utiliza para aplicar una función personalizada a cada grupo en un DataFrame agrupado?",
+                options: [
+                    "df.groupby('columna').apply(función)",
+                    "df.groupby('columna').map(función)",
+                    "df.groupby('columna').transform(función)",
+                    "df.groupby('columna').custom(función)"
+                ],
+                correctAnswer: 0,
+                points: 1.5
+            },
+            {
+                id: 37,
+                text: "¿Qué hace el siguiente código?\ndf['categoria'] = pd.cut(df['valor'], bins=[0, 10, 20, 30])",
+                options: [
+                    "Divide los valores en 3 rangos: 0-10, 10-20, 20-30",
+                    "Verifica si los valores están en alguno de los tres bins especificados",
+                    "Crea una columna categórica con etiquetas basadas en los rangos de 'valor'",
+                    "Genera un histograma con 3 bins"
+                ],
+                correctAnswer: 2,
+                points: 1.5
+            },
+            {
+                id: 38,
+                text: "¿Qué función de agregación utiliza el siguiente código?\ndf.groupby('categoría').agg({'ventas': ['sum', 'mean', 'max']})",
+                options: [
+                    "Calcula la suma, media y máximo para todas las columnas agrupadas por categoría",
+                    "Calcula la suma de 'ventas', la media de 'ventas' y el máximo de 'ventas' para cada categoría",
+                    "Combina las columnas 'sum', 'mean' y 'max' agrupadas por categoría",
+                    "Genera un error porque agg() no acepta diccionarios como parámetros"
+                ],
+                correctAnswer: 1,
+                points: 1.5
+            },
+            {
+                id: 39,
+                text: "¿Cuál es la forma correcta de aplicar una función personalizada a cada elemento de un DataFrame?",
+                options: [
+                    "df.map(función)",
+                    "df.transform(función)",
+                    "df.applymap(función)",
+                    "df.elements(función)"
+                ],
+                correctAnswer: 2,
+                points: 1.5
+            },
+            {
+                id: 40,
+                text: "¿Qué método se utiliza para crear variables dummies (0 y 1) a partir de una columna categórica?",
+                code: "# Dado el siguiente DataFrame\ndf = pd.DataFrame({\n    'color': ['rojo', 'azul', 'verde', 'rojo']\n})\n\n# ¿Cómo convertir la columna 'color' en columnas dummies?",
+                options: [
+                    "pd.get_dummies(df['color'])",
+                    "df['color'].dummies()",
+                    "df.encode('color')",
+                    "pd.create_dummies(df, 'color')"
+                ],
+                correctAnswer: 0,
+                points: 1.5
+            }
+        ];
+
+        // Variables globales
+        let currentQuestionIndex = 0;
+        let userAnswers = Array(questions.length).fill(null);
+        let startTime;
+        let timerInterval;
+
+        // Elementos DOM
+        const introScreen = document.getElementById("intro-screen");
+        const quizContainer = document.getElementById("quiz-container");
+        const resultsContainer = document.getElementById("results-container");
+        const questionsContainer = document.getElementById("questions-container");
+        const startButton = document.getElementById("start-button");
+        const prevButton = document.getElementById("prev-button");
+        const nextButton = document.getElementById("next-button");
+        const submitButton = document.getElementById("submit-button");
+        const questionIndicator = document.getElementById("question-indicator");
+        const progressBar = document.getElementById("progress-bar");
+        const timeElement = document.getElementById("time");
+        const retryButton = document.getElementById("retry-button");
+
+        // Inicialización
+        startButton.addEventListener("click", startQuiz);
+        prevButton.addEventListener("click", showPreviousQuestion);
+        nextButton.addEventListener("click", showNextQuestion);
+        submitButton.addEventListener("click", submitQuiz);
+        retryButton.addEventListener("click", resetQuiz);
+
+        // Función para iniciar el cuestionario
+        function startQuiz() {
+            introScreen.classList.add("hidden");
+            quizContainer.classList.remove("hidden");
+            
+            startTime = new Date();
+            timerInterval = setInterval(updateTimer, 1000);
+            
+            showQuestion(0);
+            updateQuestionIndicator();
+            updateProgressBar();
+        }
+
+        // Mostrar una pregunta específica
+        function showQuestion(index) {
+            questionsContainer.innerHTML = "";
+            
+            const question = questions[index];
+            const questionElement = document.createElement("div");
+            questionElement.classList.add("question-container", "mb-6");
+            
+            // Número y texto de la pregunta
+            const questionHeader = document.createElement("h3");
+            questionHeader.classList.add("text-lg", "font-bold", "mb-3");
+            questionHeader.textContent = `${index + 1}. ${question.text}`;
+            questionElement.appendChild(questionHeader);
+            
+            // Si hay código, mostrarlo
+            if (question.code) {
+                const codeBlock = document.createElement("pre");
+                codeBlock.classList.add("code-block", "mb-4", "text-sm");
+                codeBlock.textContent = question.code;
+                questionElement.appendChild(codeBlock);
+            }
+            
+            // Información de puntos
+            const pointsInfo = document.createElement("p");
+            pointsInfo.classList.add("text-sm", "text-gray-600", "mb-4");
+            pointsInfo.textContent = `[${question.points} ${question.points === 1 ? 'punto' : 'puntos'}]`;
+            questionElement.appendChild(pointsInfo);
+            
+            // Opciones
+            const optionsContainer = document.createElement("div");
+            optionsContainer.classList.add("space-y-3");
+            
+            question.options.forEach((option, optionIndex) => {
+                const optionContainer = document.createElement("div");
+                optionContainer.classList.add("flex", "items-center");
+                
+                const optionId = `question-${index}-option-${optionIndex}`;
+                
+                const radioInput = document.createElement("input");
+                radioInput.type = "radio";
+                radioInput.name = `question-${index}`;
+                radioInput.id = optionId;
+                radioInput.value = optionIndex;
+                radioInput.classList.add("hidden");
+                if (userAnswers[index] === optionIndex) {
+                    radioInput.checked = true;
+                }
+                
+                radioInput.addEventListener("change", function() {
+                    userAnswers[index] = optionIndex;
+                    updateProgressBar();
+                });
+                
+                const optionLabel = document.createElement("label");
+                optionLabel.htmlFor = optionId;
+                optionLabel.classList.add("option-label", "flex", "items-center", "w-full", "p-3", "border", "rounded-lg", "cursor-pointer");
+                
+                const radioCircle = document.createElement("div");
+                radioCircle.classList.add("w-5", "h-5", "border", "border-gray-400", "rounded-full", "mr-3", "flex", "items-center", "justify-center");
+                
+                const radioInner = document.createElement("div");
+                radioInner.classList.add("w-3", "h-3", "bg-blue-500", "rounded-full", "opacity-0", "transition-opacity");
+                
+                radioInput.addEventListener("change", function() {
+                    if (this.checked) {
+                        radioInner.classList.add("opacity-100");
+                    } else {
+                        radioInner.classList.remove("opacity-100");
+                    }
+                });
+                
+                if (userAnswers[index] === optionIndex) {
+                    radioInner.classList.add("opacity-100");
+                }
+                
+                radioCircle.appendChild(radioInner);
+                
+                const optionText = document.createElement("span");
+                optionText.textContent = option;
+                
+                optionLabel.appendChild(radioCircle);
+                optionLabel.appendChild(optionText);
+                
+                optionContainer.appendChild(radioInput);
+                optionContainer.appendChild(optionLabel);
+                
+                optionsContainer.appendChild(optionContainer);
+            });
+            
+            questionElement.appendChild(optionsContainer);
+            questionsContainer.appendChild(questionElement);
+            
+            // Actualizar botones de navegación
+            prevButton.disabled = index === 0;
+            
+            if (index === questions.length - 1) {
+                nextButton.classList.add("hidden");
+                submitButton.classList.remove("hidden");
+            } else {
+                nextButton.classList.remove("hidden");
+                submitButton.classList.add("hidden");
+            }
+            
+            currentQuestionIndex = index;
+        }
+
+        // Mostrar pregunta anterior
+        function showPreviousQuestion() {
+            if (currentQuestionIndex > 0) {
+                showQuestion(currentQuestionIndex - 1);
+                updateQuestionIndicator();
+            }
+        }
+
+        // Mostrar siguiente pregunta
+        function showNextQuestion() {
+            if (currentQuestionIndex < questions.length - 1) {
+                showQuestion(currentQuestionIndex + 1);
+                updateQuestionIndicator();
+            }
+        }
+
+        // Actualizar el indicador de pregunta
+        function updateQuestionIndicator() {
+            questionIndicator.textContent = `Pregunta ${currentQuestionIndex + 1} de ${questions.length}`;
+        }
+
+        // Actualizar la barra de progreso
+        function updateProgressBar() {
+            const answeredCount = userAnswers.filter(answer => answer !== null).length;
+            const percentageComplete = (answeredCount / questions.length) * 100;
+            progressBar.style.width = `${percentageComplete}%`;
+        }
+
+        // Actualizar el temporizador
+        function updateTimer() {
+            const currentTime = new Date();
+            const elapsedTimeInSeconds = Math.floor((currentTime - startTime) / 1000);
+            const remainingSeconds = 3600 - elapsedTimeInSeconds;
+            
+            if (remainingSeconds <= 0) {
+                clearInterval(timerInterval);
+                submitQuiz();
+                return;
+            }
+            
+            const minutes = Math.floor(remainingSeconds / 60);
+            const seconds = remainingSeconds % 60;
+            
+            timeElement.textContent = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            
+            if (remainingSeconds <= 300) {
+                timeElement.classList.add("text-red-500");
+            }
+        }
+
+        // Enviar el cuestionario
+        function submitQuiz() {
+            clearInterval(timerInterval);
+            quizContainer.classList.add("hidden");
+            resultsContainer.classList.remove("hidden");
+            
+            calculateResults();
+        }
+
+        // Calcular resultados
+        function calculateResults() {
+            let totalPoints = 0;
+            let correctAnswers = 0;
+            let incorrectAnswers = 0;
+            let unanswered = 0;
+            
+            for (let i = 0; i < questions.length; i++) {
+                const question = questions[i];
+                if (userAnswers[i] === null) {
+                    unanswered++;
+                } else if (userAnswers[i] === question.correctAnswer) {
+                    correctAnswers++;
+                    totalPoints += question.points;
+                } else {
+                    incorrectAnswers++;
+                }
+            }
+            
+            // Mostrar puntuación
+            const finalScoreElement = document.getElementById("final-score");
+            finalScoreElement.textContent = totalPoints.toFixed(1);
+            
+            // Animar círculo de puntuación
+            const scoreCircle = document.getElementById("score-circle");
+            const circumference = 2 * Math.PI * 70;
+            const offset = circumference - (totalPoints / 50) * circumference;
+            
+            setTimeout(() => {
+                scoreCircle.style.strokeDasharray = circumference;
+                scoreCircle.style.strokeDashoffset = offset;
+            }, 100);
+            
+            // Mostrar feedback
+            const feedbackElement = document.getElementById("feedback");
+            let feedbackMessage;
+            
+            if (totalPoints >= 45) {
+                feedbackMessage = "¡Excelente! Dominas la biblioteca pandas y la manipulación de DataFrames.";
+            } else if (totalPoints >= 35) {
+                feedbackMessage = "¡Muy bien! Tienes un buen conocimiento de pandas y DataFrames.";
+            } else if (totalPoints >= 25) {
+                feedbackMessage = "Buen trabajo. Tienes conocimientos básicos de pandas, pero hay áreas para mejorar.";
+            } else {
+                feedbackMessage = "Necesitas practicar más con pandas y la manipulación de DataFrames.";
+            }
+            
+            feedbackElement.textContent = feedbackMessage;
+            
+            // Crear gráfico
+            const ctx = document.getElementById("results-chart").getContext("2d");
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Correctas', 'Incorrectas', 'Sin responder'],
+                    datasets: [{
+                        data: [correctAnswers, incorrectAnswers, unanswered],
+                        backgroundColor: [
+                            'rgba(72, 187, 120, 0.7)',
+                            'rgba(237, 100, 100, 0.7)',
+                            'rgba(160, 174, 192, 0.7)'
+                        ],
+                        borderColor: [
+                            'rgb(72, 187, 120)',
+                            'rgb(237, 100, 100)',
+                            'rgb(160, 174, 192)'
+                        ],
+                        borderWidth: 1
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                        },
+                        title: {
+                            display: true,
+                            text: 'Resumen de respuestas'
+                        }
+                    }
+                }
+            });
+            
+            // Mostrar revisión de respuestas
+            const answersContainer = document.getElementById("answers-container");
+            answersContainer.innerHTML = "";
+            
+            questions.forEach((question, index) => {
+                const answerItem = document.createElement("div");
+                answerItem.classList.add("border-b", "pb-4");
+                
+                const questionHeader = document.createElement("h4");
+                questionHeader.classList.add("font-bold", "mb-2");
+                questionHeader.textContent = `${index + 1}. ${question.text}`;
+                
+                const resultLine = document.createElement("div");
+                resultLine.classList.add("flex", "items-center", "mb-2");
+                
+                const resultIcon = document.createElement("i");
+                if (userAnswers[index] === null) {
+                    resultIcon.classList.add("fas", "fa-minus-circle", "text-gray-500", "mr-2");
+                    resultLine.classList.add("text-gray-500");
+                    resultLine.textContent = "Sin respuesta";
+                } else if (userAnswers[index] === question.correctAnswer) {
+                    resultIcon.classList.add("fas", "fa-check-circle", "text-green-500", "mr-2");
+                    resultLine.classList.add("text-green-500");
+                    resultLine.textContent = "Correcto";
+                } else {
+                    resultIcon.classList.add("fas", "fa-times-circle", "text-red-500", "mr-2");
+                    resultLine.classList.add("text-red-500");
+                    resultLine.textContent = "Incorrecto";
+                }
+                
+                resultLine.prepend(resultIcon);
+                
+                const correctAnswer = document.createElement("div");
+                correctAnswer.classList.add("text-sm", "text-gray-700", "mt-1");
+                correctAnswer.textContent = `Respuesta correcta: ${question.options[question.correctAnswer]}`;
+                
+                answerItem.appendChild(questionHeader);
+                answerItem.appendChild(resultLine);
+                answerItem.appendChild(correctAnswer);
+                
+                answersContainer.appendChild(answerItem);
+            });
+        }
+
+        // Reiniciar el cuestionario
+        function resetQuiz() {
+            userAnswers = Array(questions.length).fill(null);
+            currentQuestionIndex = 0;
+            resultsContainer.classList.add("hidden");
+            introScreen.classList.remove("hidden");
+        }
+    </script>
+</body>
+</html>
